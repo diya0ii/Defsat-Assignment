@@ -1,12 +1,23 @@
 "use client";
 
-import { Startup, Decision } from "../data/startups";
+import { Startup, Decision } from "../app/startups";
 
 interface StartupCardProps {
   startup: Startup;
   onDecision: (id: string, decision: Decision) => void;
 }
+const generateInsight = (startup: Startup): string => {
+  const topStrength = startup.strengths[0]?.toLowerCase() ?? "strong fundamentals";
+  const topRisk = startup.risks[0]?.toLowerCase() ?? "execution risk";
 
+  if (startup.score >= 8) {
+    return `High-conviction opportunity — ${topStrength}. Strong fundamentals support a leading position in ${startup.industry}.`;
+  }
+  if (startup.score >= 5) {
+    return `Balanced risk/reward at ${startup.stage} stage. ${startup.strengths[0]} is compelling, but ${topRisk} warrants closer scrutiny before committing.`;
+  }
+  return `Elevated risk profile at ${startup.stage} stage — ${topRisk}. Reserve judgment until clearer traction milestones are established.`;
+};
 const scoreConfig = (score: number) => {
   if (score >= 7) return { color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/30", bar: "bg-emerald-400", label: "Strong" };
   if (score >= 5) return { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/30", bar: "bg-amber-400", label: "Medium" };
@@ -60,6 +71,12 @@ export default function StartupCard({ startup, onDecision }: StartupCardProps) {
 
         {/* Summary */}
         <p className="text-sm text-slate-400 leading-relaxed">{startup.summary}</p>
+
+        {/* AI Insight */}
+        <div className="flex items-start gap-2.5 bg-blue-500/5 border border-blue-500/20 rounded-xl px-4 py-3">
+          <span className="text-blue-400 text-xs mt-0.5 shrink-0 font-bold uppercase tracking-widest">AI</span>
+          <p className="text-xs text-blue-200/70 leading-relaxed italic">{generateInsight(startup)}</p>
+        </div>
 
         {/* Score */}
         <div className={`rounded-xl p-4 border ${cfg.bg}`}>
