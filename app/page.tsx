@@ -1,65 +1,114 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useMemo } from "react";
+import { startups as initialStartups, Startup, Decision } from "../app/startups";
+import StartupCard from "../app/StartupCard";
+
+type Filter = "All" | "Interested" | "Pass" | "Pending";
+
+export default function Dashboard() {
+  const [deals, setDeals] = useState<Startup[]>(initialStartups);
+  const [filter, setFilter] = useState<Filter>("All");
+
+  const handleDecision = (id: string, decision: Decision) => {
+    setDeals((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, decision } : s))
+    );
+  };
+
+  const filtered = useMemo(() => {
+    if (filter === "All") return deals;
+    return deals.filter((d) => d.decision === filter);
+  }, [deals, filter]);
+
+  const stats = useMemo(() => ({
+    total: deals.length,
+    interested: deals.filter((d) => d.decision === "Interested").length,
+    passed: deals.filter((d) => d.decision === "Pass").length,
+    pending: deals.filter((d) => d.decision === "Pending").length,
+    avgScore: (deals.reduce((sum, d) => sum + d.score, 0) / deals.length).toFixed(1),
+  }), [deals]);
+
+  const filters: Filter[] = ["All", "Interested", "Pass", "Pending"];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-[#080d14] text-white">
+      {/* Background grid */}
+      <div className="fixed inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.02\'%3E%3Cpath d=\'M0 0h1v40H0zm40 0h-1v40h1zM0 0v1h40V0zm0 40v-1h40v1z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-6 py-10">
+        {/* Header */}
+        <header className="mb-10">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-sm font-bold">D</div>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">DealFlow OS</span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-white mt-3">Investment Pipeline</h1>
+          <p className="text-slate-500 text-sm mt-1">Review, score, and manage your startup deal flow.</p>
+        </header>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "Total Deals", value: stats.total, color: "text-white" },
+            { label: "Interested", value: stats.interested, color: "text-emerald-400" },
+            { label: "Passed", value: stats.passed, color: "text-rose-400" },
+            { label: "Avg Score", value: stats.avgScore, color: "text-blue-400" },
+          ].map((s) => (
+            <div key={s.label} className="bg-[#0f1623] border border-white/[0.07] rounded-xl px-5 py-4">
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">{s.label}</p>
+              <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Filter tabs */}
+        <div className="flex items-center gap-2 mb-8 p-1 bg-[#0f1623] border border-white/[0.07] rounded-xl w-fit">
+          {filters.map((f) => {
+            const count = f === "All" ? deals.length : deals.filter((d) => d.decision === f).length;
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2
+                  ${filter === f
+                    ? "bg-white/10 text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+                  }`}
+              >
+                {f}
+                <span className={`text-xs px-1.5 py-0.5 rounded-md ${filter === f ? "bg-white/10 text-slate-300" : "bg-white/5 text-slate-600"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </main>
+
+        {/* Cards grid */}
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="text-4xl mb-4">📂</div>
+            <p className="text-slate-400 font-medium">No deals in this category</p>
+            <p className="text-slate-600 text-sm mt-1">Try switching to a different filter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {filtered.map((startup) => (
+              <StartupCard
+                key={startup.id}
+                startup={startup}
+                onDecision={handleDecision}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Footer */}
+        <footer className="mt-16 pt-8 border-t border-white/[0.05] text-center text-xs text-slate-700">
+          DealFlow OS · {new Date().getFullYear()} · Prototype
+        </footer>
+      </div>
     </div>
   );
 }
